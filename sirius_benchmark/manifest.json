@@ -1,0 +1,22 @@
+{
+  "profiles": {
+    "light": {
+      "source_dataset": "SWE-bench/SWE-bench_Lite",
+      "dataset_file": "datasets/light.jsonl",
+      "tickets_file": "tickets/light_tickets.csv",
+      "instance_ids_file": "configs/light_instance_ids.txt",
+      "count": 10,
+      "min_score": 20,
+      "max_score": 29,
+      "repositories": [
+        "django/django",
+        "matplotlib/matplotlib",
+        "mwaskom/seaborn",
+        "pylint-dev/pylint",
+        "scikit-learn/scikit-learn",
+        "sphinx-doc/sphinx",
+        "sympy/sympy"
+      ]
+    }
+  }
+}

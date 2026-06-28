@@ -1,0 +1,7 @@
+{
+  "profile": "light",
+  "dataset_file": "sirius_benchmark/datasets/light.jsonl",
+  "tickets_file": "sirius_benchmark/tickets/light_tickets.csv",
+  "instance_ids_file": "sirius_benchmark/configs/light_instance_ids.txt",
+  "run_command": "bash sirius_benchmark/scripts/run_light.sh"
+}

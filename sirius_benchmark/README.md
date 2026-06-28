@@ -1,6 +1,6 @@
-# Sirius SWE-bench Light
+# Sirius SWE-bench Light: SymPy
 
-10 simple SWE-bench Lite tasks for a fast classroom run.
+10 simple SymPy bug-fixing tasks from `SWE-bench/SWE-bench_Lite` for a fast classroom run.
 
 ## Files
 

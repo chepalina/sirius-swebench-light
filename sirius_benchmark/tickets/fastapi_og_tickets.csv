@@ -1,0 +1,96 @@
+profile,source_dataset,instance_id,repo,difficulty_score,difficulty_label,title,ticket_description,expected_fail_to_pass_tests,pass_to_pass_count,patch_files,test_files,patch_changed_lines,test_patch_changed_lines,base_commit,created_at,version
+fastapi_swebench,mokshjain/fastapi-swebench-tasks,fastapi__fastapi-14512,tiangolo/fastapi,-90,easy,"Discriminated Unions Break When Wrapped in `Annotated[Union, Body(...)]` in FastAPI 0.124.1+","Discriminated Unions Break When Wrapped in `Annotated[Union, Body(...)]` in FastAPI 0.124.1+
+
+## Problem
+
+Using a tagged/discriminated union inside `Annotated[Union[...], Body()]` raises a `PydanticSchemaGenerationError` in FastAPI 0.124.1+.
+
+### Example Code
+
+```python
+from typing import Union
+from fastapi import Body, FastAPI
+from pydantic import BaseModel, Discriminator, Tag
+from typing_extensions import Annotated
+
+class Cat(BaseModel):
+    pet_type: str = ""cat""
+    meows: int
+
+class Dog(BaseModel):
+    pet_type: str = ""dog""
+    barks: float
+
+def get_pet_type(v):
+    return v.get(""pet_type"", """")
+
+Pet = Annotated[
+    Union[Annotated[Cat, Tag(""cat"")], Annotated[Dog, Tag(""dog"")]],
+    Discriminator(get_pet_type),
+]
+
+app = FastAPI()
+
+@app.post(""/pet"")
+async def create_pet(pet: Annotated[Pet, Body()]):
+    return pet
+```
+
+This works with `pet: Pet = Body()` (assignment syntax) but **fails** with `pet: Annotated[Pet, Body()]` (annotated syntax) in FastAPI >= 0.124.1.
+
+### Related
+- https://github.com/fastapi/fastapi/discussions/14495
+",tests/test_union_body_discriminator_annotated.py::test_union_body_discriminator_assignment | tests/test_union_body_discriminator_annotated.py::test_union_body_discriminator_annotated,0,fastapi/_compat/v2.py,tests/test_union_body_discriminator_annotated.py,52,207,1fcec88ad2df4541b6a81c4786c4d039dc745e1e,2025-12-11T00:00:00Z,0.124.2
+fastapi_swebench,mokshjain/fastapi-swebench-tasks,fastapi__fastapi-14616,tiangolo/fastapi,-46,medium,Using pydantic Json Type as Form data type doesn't work,"Using pydantic Json Type as Form data type doesn't work
+
+## Problem
+
+When using `Json[list[str]]` (or any `Json[T]`) as a Form, Query, Header, or Cookie parameter, FastAPI incorrectly calls `getlist()` on the multi-dict. This returns a list with the raw JSON string, not the string itself, so Pydantic's `Json` validator fails.
+
+### Example Code
+
+```python
+from typing import Annotated
+from fastapi import FastAPI, Form
+from pydantic import Json
+
+app = FastAPI()
+
+@app.post(""/broken"")
+async def broken(json_list: Annotated[Json[list[str]], Form()]) -> list[str]:
+    return json_list
+```
+
+### Error
+
+```json
+{""detail"":[{""loc"":[""body"",""json_list""],""msg"":""JSON object must be str, bytes or bytearray"",""type"":""type_error.json""}]}
+```
+
+Sending `json_list=[""abc"",""def""]` (as a JSON string) to the form endpoint fails. The same bug affects Query, Header, and Cookie parameters.
+",tests/test_json_type.py::test_form_json_list | tests/test_json_type.py::test_query_json_list | tests/test_json_type.py::test_header_json_list,1,fastapi/dependencies/utils.py,tests/test_json_type.py,12,63,54f8aeeb9a15e4d5a12401ec5549840966df0087,2026-01-01T00:00:00Z,0.128.1
+fastapi_swebench,mokshjain/fastapi-swebench-tasks,fastapi__fastapi-14873,tiangolo/fastapi,-31,hard,Fix `on_startup` and `on_shutdown` parameters of `APIRouter`,"Fix `on_startup` and `on_shutdown` parameters of `APIRouter`
+
+## Problem
+
+When passing `on_startup` and `on_shutdown` handlers as parameters to `FastAPI()` or `APIRouter()`, the handlers are not called.
+
+### Example
+
+```python
+from fastapi import FastAPI
+
+def s_start():
+    print(""SYNC START"", flush=True)
+
+app = FastAPI(on_startup=[s_start])
+
+@app.get(""/health"")
+async def health():
+    return {""ok"": True}
+```
+
+The startup event is not called. `APIRouter.on_startup` is set in `APIRouter.__init__` **before** calling `super().__init__()`, so Starlette's router `__init__` overwrites the value.
+
+This affects both `FastAPI` apps and `APIRouter` instances when handlers are passed as constructor parameters.
+",tests/test_router_events.py::test_startup_shutdown_handlers_as_parameters,4,fastapi/routing.py,tests/test_router_events.py,21,60,cd31576d5704b6aef1bdadc43770238cd88aad2b,2026-02-09T00:00:00Z,0.128.5
